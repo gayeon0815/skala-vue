@@ -1,7 +1,9 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch, watchEffect } from 'vue'
 
-// 1. 날씨 데이터 배열 (v-for 용)
+/* ─────────────────────────────────────────────
+   1. 반응형 상태 관리 (1일차 동일)
+   ───────────────────────────────────────────── */
 const weatherList = ref([
   { id: 'city_01', name: '서울', temp: 28, status: '맑음' },
   { id: 'city_02', name: '수원', temp: 24, status: '비' },
@@ -9,19 +11,51 @@ const weatherList = ref([
   { id: 'city_04', name: '천안', temp: 27, status: '맑음' },
 ])
 
-// 3. 검색어 (한글 조합 처리를 위해 :value + @input 사용)
-const searchText = ref('')
+// 검색어 (한글 조합 처리를 위해 :value + @input 사용)
+const searchQuery = ref('')
 const onSearchInput = (event) => {
-  searchText.value = event.target.value
+  searchQuery.value = event.target.value
 }
 
-// 4. 이벤트 처리
-const statusMessage = ref('카드를 클릭하거나 검색해 보세요.')
+// 상태바 문구 + 선택된 카드 표시용
+const selectedCityInfo = ref('카드를 클릭하거나 검색해 보세요.')
 const selectedId = ref(null)
 
+/* ─────────────────────────────────────────────
+   2. computed - 검색어로 필터링된 날씨 리스트
+   ───────────────────────────────────────────── */
+const filteredWeatherList = computed(() => {
+  const query = searchQuery.value.trim()
+
+  // 검색어가 비어 있으면 원본 데이터를 그대로 반환
+  if (!query) return weatherList.value
+
+  // 도시 이름에 검색어가 포함된 항목만 반환
+  return weatherList.value.filter((city) => city.name.includes(query))
+})
+
+/* ─────────────────────────────────────────────
+   3-1. watch - 상태바 문구(selectedCityInfo) 감시
+   ───────────────────────────────────────────── */
+watch(selectedCityInfo, (newInfo, oldInfo) => {
+  console.log(`👁️ [watch] 상태바 변경: "${oldInfo}" → "${newInfo}"`)
+})
+
+/* ─────────────────────────────────────────────
+   3-2. watchEffect - 검색어(searchQuery) 자동 추적
+   ───────────────────────────────────────────── */
+watchEffect(() => {
+  console.log(
+    `🤖 [watchEffect] 현재 검색어 '${searchQuery.value}' → 검색 결과 ${filteredWeatherList.value.length}건`,
+  )
+})
+
+/* ─────────────────────────────────────────────
+   이벤트 처리
+   ───────────────────────────────────────────── */
 const selectCity = (city) => {
   selectedId.value = city.id
-  statusMessage.value = `${city.name}이 선택되었습니다.`
+  selectedCityInfo.value = `${city.name}이 선택되었습니다.`
 }
 
 const showDetail = (cityName, status) => {
@@ -40,32 +74,35 @@ const statusIcon = (status) => {
 <template>
   <div class="weather-app">
     <header class="app-header">
-      <h2>과제 1: 날씨 <span class="badge">Mockup</span></h2>
+      <h2>과제 2: 날씨 <span class="badge">Composition</span></h2>
     </header>
 
-    <!-- 3. 양방향 바인딩 (:value / @input) -->
+    <!-- 양방향 바인딩 (:value / @input) -->
     <section class="panel">
       <h3 class="panel-title">🔍 도시 검색</h3>
       <input
         type="text"
         class="search-input"
         placeholder="검색할 도시 이름 입력"
-        :value="searchText"
+        :value="searchQuery"
         @input="onSearchInput"
       />
       <p class="search-echo">
         검색 중인 도시:
-        <strong v-if="searchText">{{ searchText }}</strong>
+        <strong v-if="searchQuery">{{ searchQuery }}</strong>
         <span v-else class="placeholder-text">아직 입력하지 않았어요</span>
       </p>
     </section>
 
-    <!-- 1. 배열 렌더링 (v-for) -->
+    <!-- 4. 검색 결과 표시 (computed 배열을 렌더링) -->
     <section class="panel">
-      <h3 class="panel-title">📊 지역별 날씨 현황</h3>
+      <h3 class="panel-title">
+        📊 지역별 날씨 현황
+        <span class="count">{{ filteredWeatherList.length }}건</span>
+      </h3>
 
       <div
-        v-for="city in weatherList"
+        v-for="city in filteredWeatherList"
         :key="city.id"
         class="card"
         :class="{ active: selectedId === city.id }"
@@ -80,19 +117,24 @@ const statusIcon = (status) => {
           </p>
           <p class="city-temp">{{ city.temp }}<span class="unit">°C</span></p>
 
-          <!-- 2. 조건부 렌더링 (v-if / v-else) -->
+          <!-- 조건부 렌더링 (v-if / v-else) -->
           <span v-if="city.temp >= 25" class="label hot">🔥 더움 (25도 이상)</span>
           <span v-else class="label cool">❄️ 선선함 (25도 미만)</span>
         </div>
 
-        <!-- 4. 이벤트 수식어 (.stop 으로 버블링 차단) -->
+        <!-- 이벤트 수식어 (.stop 으로 버블링 차단) -->
         <button class="detail-btn" @click.stop="showDetail(city.name, city.status)">
           상세보기
         </button>
       </div>
+
+      <!-- 검색 결과가 없을 때 안내 -->
+      <p v-if="filteredWeatherList.length === 0" class="empty-result">
+        😭 '{{ searchQuery }}'와 일치하는 도시가 없습니다.
+      </p>
     </section>
 
-    <div class="status-bar">{{ statusMessage }}</div>
+    <div class="status-bar">{{ selectedCityInfo }}</div>
   </div>
 </template>
 
@@ -144,9 +186,20 @@ const statusIcon = (status) => {
   margin-bottom: 20px;
 }
 .panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin: 0 0 14px 0;
   font-size: 15px;
   color: #475569;
+}
+.count {
+  padding: 3px 10px;
+  background-color: #eef2ff;
+  color: #6366f1;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
 }
 
 /* 검색 */
@@ -262,6 +315,19 @@ const statusIcon = (status) => {
   background-color: #6366f1;
   border-color: #6366f1;
   color: #ffffff;
+}
+
+/* 검색 결과 없음 */
+.empty-result {
+  margin: 12px 0 0 0;
+  padding: 28px 18px;
+  background-color: #fff1f2;
+  border: 1px dashed #fecdd3;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e11d48;
 }
 
 /* 상태바 */

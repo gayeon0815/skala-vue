@@ -1,16 +1,13 @@
 <script setup>
-import { ref } from "vue";
-const inputValue = ref("");
-const message = ref("");
-function showMessage() {
-  message.value = inputValue.value;
-}
+import { ref } from 'vue'
+
+const welcomeMessage = 'Welcome to Skala-Vue'
 </script>
+
 <template>
   <div class="practice-section">
-    <h2>v-html XSS 학습</h2>
-    <input v-model="inputValue" placeholder="내용을 입력하세요" />
-    <button @click="showMessage">확인</button>
-    <div v-html="message"></div>
+    <h2>{{ welcomeMessage }}</h2>
+    <p>{{ welcomeMessage.toUpperCase() }}</p>
+    <p>{{ 'Random number: ' + Math.ceil(Math.random() * 100) }}</p>
   </div>
 </template>

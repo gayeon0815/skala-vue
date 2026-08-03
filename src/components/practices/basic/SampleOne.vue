@@ -1,24 +1,19 @@
 <script setup>
-import { ref } from "vue";
-const dynamicUrl = "https://www.naver.com";
-const logoImgSrc = "https://vuejs.org/images/logo.png";
-const isButtonDisabled = ref(true);
+import { ref } from 'vue'
+
+// 1. 일반 변수 (화면이 실시간으로 바뀌지 않음)
+let normalCount = 0
+// 2. 반응성 변수 (화면이 실시간으로 바뀜)
+const vueCount = ref(0)
 </script>
+
 <template>
   <div class="practice-section">
-    <h2>v-bind 디렉티브 기본 (축약형: 콜론)</h2>
-    <h3>1) 동적 링크 연결</h3>
-    <a :href="dynamicUrl">여기를 클릭하면 네이버로 이동합니다</a>
+    <h2>Hello Skala-Vue</h2>
+    <h3>일반 변수 클릭: {{ normalCount }}</h3>
+    <button @click="normalCount++">일반 변수 증가</button>
     <br />
-    <h3>2) 동적 이미지 연결</h3>
-    <img :src="logoImgSrc" alt="Vue 로고" style="width: 100px" />
-    <br />
-    <h3>3) 버튼 비활성화 제어</h3>
-    <p>현재 버튼 사용 불가능 상태: {{ isButtonDisabled }}</p>
-    <button :disabled="isButtonDisabled">동의해야 클릭할 수 있는 버튼</button
-    >&nbsp;
-    <button @click="isButtonDisabled = !isButtonDisabled">
-      위 버튼 잠금 해제/토글하기
-    </button>
+    <h3>Vue 반응성 변수 클릭: {{ vueCount }}</h3>
+    <button @click="vueCount++">Vue 변수 증가</button>
   </div>
 </template>
