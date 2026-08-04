@@ -3,29 +3,72 @@ import { ref, computed, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { useConfigStore } from '@/stores/configStore'
 import axios from 'axios'
+import { fetchFestivalsByArea, sortFestivals } from '@/components/exercise/festivalService'
+import FestivalList from '@/components/exercise/FestivalList.vue'
 
 const route = useRoute()
 
 const cities = [
-  { id: 'city_01', name: '서울', region: '서울/경기', lat: 37.5665, lon: 126.978 },
-  { id: 'city_02', name: '수원', region: '서울/경기', lat: 37.2636, lon: 127.0286 },
-  { id: 'city_03', name: '인천', region: '서울/경기', lat: 37.4563, lon: 126.7052 },
-  { id: 'city_04', name: '춘천', region: '강원', lat: 37.8813, lon: 127.7298 },
-  { id: 'city_05', name: '강릉', region: '강원', lat: 37.7519, lon: 128.8761 },
-  { id: 'city_06', name: '천안', region: '충청', lat: 36.8151, lon: 127.1139 },
-  { id: 'city_07', name: '대전', region: '충청', lat: 36.3504, lon: 127.3845 },
-  { id: 'city_08', name: '청주', region: '충청', lat: 36.6424, lon: 127.489 },
-  { id: 'city_09', name: '전주', region: '전라', lat: 35.8242, lon: 127.148 },
-  { id: 'city_10', name: '광주', region: '전라', lat: 35.1595, lon: 126.8526 },
-  { id: 'city_11', name: '여수', region: '전라', lat: 34.7604, lon: 127.6622 },
-  { id: 'city_12', name: '대구', region: '경상', lat: 35.8714, lon: 128.6014 },
-  { id: 'city_13', name: '부산', region: '경상', lat: 35.1796, lon: 129.0756 },
-  { id: 'city_14', name: '포항', region: '경상', lat: 36.019, lon: 129.3435 },
-  { id: 'city_15', name: '제주', region: '제주', lat: 33.4996, lon: 126.5312 },
+  {
+    id: 'city_01',
+    name: '서울',
+    region: '서울/경기',
+    lat: 37.5665,
+    lon: 126.978,
+    tourAreaCode: '1',
+  },
+  {
+    id: 'city_02',
+    name: '수원',
+    region: '서울/경기',
+    lat: 37.2636,
+    lon: 127.0286,
+    tourAreaCode: '31',
+  },
+  {
+    id: 'city_03',
+    name: '인천',
+    region: '서울/경기',
+    lat: 37.4563,
+    lon: 126.7052,
+    tourAreaCode: '2',
+  },
+  { id: 'city_04', name: '춘천', region: '강원', lat: 37.8813, lon: 127.7298, tourAreaCode: '32' },
+  { id: 'city_05', name: '강릉', region: '강원', lat: 37.7519, lon: 128.8761, tourAreaCode: '32' },
+  { id: 'city_06', name: '천안', region: '충청', lat: 36.8151, lon: 127.1139, tourAreaCode: '34' },
+  { id: 'city_07', name: '대전', region: '충청', lat: 36.3504, lon: 127.3845, tourAreaCode: '3' },
+  { id: 'city_08', name: '청주', region: '충청', lat: 36.6424, lon: 127.489, tourAreaCode: '33' },
+  { id: 'city_09', name: '전주', region: '전라', lat: 35.8242, lon: 127.148, tourAreaCode: '37' },
+  { id: 'city_10', name: '광주', region: '전라', lat: 35.1595, lon: 126.8526, tourAreaCode: '5' },
+  { id: 'city_11', name: '여수', region: '전라', lat: 34.7604, lon: 127.6622, tourAreaCode: '38' },
+  { id: 'city_12', name: '대구', region: '경상', lat: 35.8714, lon: 128.6014, tourAreaCode: '4' },
+  { id: 'city_13', name: '부산', region: '경상', lat: 35.1796, lon: 129.0756, tourAreaCode: '6' },
+  { id: 'city_14', name: '포항', region: '경상', lat: 36.019, lon: 129.3435, tourAreaCode: '35' },
+  { id: 'city_15', name: '제주', region: '제주', lat: 33.4996, lon: 126.5312, tourAreaCode: '39' },
 ]
 
 const city = ref(null)
 const isLoading = ref(true)
+
+const festivals = ref([])
+const festivalStatus = ref('loading')
+
+const loadFestivals = async (cityName) => {
+  festivalStatus.value = 'loading'
+  const meta = cities.find((c) => c.name === cityName)
+  if (!meta) {
+    festivalStatus.value = 'error'
+    return
+  }
+  try {
+    const list = await fetchFestivalsByArea(meta.tourAreaCode)
+    festivals.value = sortFestivals(list)
+    festivalStatus.value = 'ok'
+  } catch (err) {
+    console.error(err)
+    festivalStatus.value = 'error'
+  }
+}
 
 const configStore = useConfigStore()
 
@@ -122,6 +165,12 @@ const loadCity = async (cityId) => {
 
 watch(() => route.params.cityId, loadCity, { immediate: true })
 
+watch(city, (newCity) => {
+  if (newCity && newCity.name !== '내 위치') {
+    loadFestivals(newCity.name)
+  }
+})
+
 const theme = computed(() => {
   switch (city.value?.status) {
     case '맑음':
@@ -197,6 +246,22 @@ const formatHour = (isoString, index) => {
           <span class="hourly-temp">{{ convertTemp(hour.temp) }}{{ configStore.unitSymbol }}</span>
         </div>
       </div>
+    </section>
+
+    <section class="festival-section" v-if="city.name !== '내 위치'">
+      <h3 class="section-title"><i class="fa-solid fa-champagne-glasses"></i> 지역 축제</h3>
+      <div v-if="festivalStatus === 'loading'" class="mini-status loading">
+        <i class="fa-solid fa-spinner fa-spin"></i> 축제 정보를 불러오는 중이에요...
+      </div>
+      <div v-else-if="festivalStatus === 'error'" class="mini-status error">
+        <i class="fa-solid fa-triangle-exclamation"></i> 축제 정보를 불러오지 못했어요.
+        <button class="retry-btn" @click="loadFestivals(city.name)">다시 시도</button>
+      </div>
+      <FestivalList
+        v-else
+        :festivals="festivals"
+        :empty-message="`현재 ${city.name}에서 진행 중인 축제가 없습니다.`"
+      />
     </section>
 
     <RouterLink to="/" class="back-btn">
@@ -349,5 +414,27 @@ const formatHour = (isoString, index) => {
 .back-btn:hover {
   background-color: #45415f;
   color: #ffffff;
+}
+.festival-section {
+  margin-bottom: 24px;
+}
+.mini-status {
+  padding: 20px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+.mini-status.loading {
+  background-color: #eaf6ff;
+  color: #3b82c4;
+}
+.mini-status.error {
+  background-color: #ffe9f1;
+  color: #ff5c8a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 </style>

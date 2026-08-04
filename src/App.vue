@@ -11,6 +11,8 @@ import { RouterLink, RouterView } from 'vue-router'
       <div class="nav-links">
         <RouterLink to="/" class="nav-link">홈</RouterLink>
         <RouterLink to="/about" class="nav-link">소개</RouterLink>
+        <RouterLink to="/festivals" class="nav-link">축제</RouterLink>
+        <RouterLink to="/mock-api" class="nav-link">Mock API</RouterLink>
       </div>
     </nav>
 

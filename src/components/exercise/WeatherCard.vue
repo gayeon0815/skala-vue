@@ -15,6 +15,7 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  festivalBadge: { type: Object, default: null },
 })
 
 const emit = defineEmits(['select-card', 'click-detail', 'toggle-favorite'])
@@ -79,6 +80,13 @@ const handleFavorite = () => {
     :style="{ '--wash': theme.wash, '--accent': theme.accent }"
     @click="handleSelect"
   >
+    <span
+      v-if="festivalBadge"
+      class="festival-badge"
+      :style="{ backgroundColor: festivalBadge.color }"
+    >
+      {{ festivalBadge.label }}
+    </span>
     <div class="icon-bubble"><i :class="theme.icon"></i></div>
 
     <div class="card-body">
@@ -270,6 +278,16 @@ const handleFavorite = () => {
 }
 .detail-btn:hover {
   background-color: var(--accent);
+  color: #ffffff;
+}
+.festival-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
   color: #ffffff;
 }
 </style>

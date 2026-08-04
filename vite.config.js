@@ -13,4 +13,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    proxy: {
+      '/api/tour': {
+        target: 'https://apis.data.go.kr/B551011/KorService2',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/tour/, ''),
+      },
+    },
+  },
 })

@@ -18,10 +18,16 @@ const router = createRouter({
       component: () => import('../views/WeatherAboutView.vue'),
     },
     {
+      path: '/festivals',
+      name: 'festivals',
+      component: () => import('../views/FestivalListView.vue'),
+    },
+    {
       path: '/weather/:cityId',
       name: 'weatherDetail',
       component: () => import('../views/WeatherDetailView.vue'),
     },
+    { path: '/mock-api', name: 'mockApi', component: () => import('../views/MockApiView.vue') },
     {
       path: '/:pathMatch(.*)*',
       name: 'notFound',

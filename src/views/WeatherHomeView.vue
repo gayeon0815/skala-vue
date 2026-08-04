@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { fetchFestivalsByArea } from '@/components/exercise/festivalService'
 import axios from 'axios'
 import BaseDashboardCard from '@/components/exercise/BaseDashboardCard.vue'
 import SearchBar from '@/components/exercise/SearchBar.vue'
@@ -16,21 +17,42 @@ const router = useRouter()
    1. 반응형 상태 관리
    ───────────────────────────────────────────── */
 const cities = ref([
-  { id: 'city_01', name: '서울', region: '서울/경기', lat: 37.5665, lon: 126.978 },
-  { id: 'city_02', name: '수원', region: '서울/경기', lat: 37.2636, lon: 127.0286 },
-  { id: 'city_03', name: '인천', region: '서울/경기', lat: 37.4563, lon: 126.7052 },
-  { id: 'city_04', name: '춘천', region: '강원', lat: 37.8813, lon: 127.7298 },
-  { id: 'city_05', name: '강릉', region: '강원', lat: 37.7519, lon: 128.8761 },
-  { id: 'city_06', name: '천안', region: '충청', lat: 36.8151, lon: 127.1139 },
-  { id: 'city_07', name: '대전', region: '충청', lat: 36.3504, lon: 127.3845 },
-  { id: 'city_08', name: '청주', region: '충청', lat: 36.6424, lon: 127.489 },
-  { id: 'city_09', name: '전주', region: '전라', lat: 35.8242, lon: 127.148 },
-  { id: 'city_10', name: '광주', region: '전라', lat: 35.1595, lon: 126.8526 },
-  { id: 'city_11', name: '여수', region: '전라', lat: 34.7604, lon: 127.6622 },
-  { id: 'city_12', name: '대구', region: '경상', lat: 35.8714, lon: 128.6014 },
-  { id: 'city_13', name: '부산', region: '경상', lat: 35.1796, lon: 129.0756 },
-  { id: 'city_14', name: '포항', region: '경상', lat: 36.019, lon: 129.3435 },
-  { id: 'city_15', name: '제주', region: '제주', lat: 33.4996, lon: 126.5312 },
+  {
+    id: 'city_01',
+    name: '서울',
+    region: '서울/경기',
+    lat: 37.5665,
+    lon: 126.978,
+    tourAreaCode: '1',
+  },
+  {
+    id: 'city_02',
+    name: '수원',
+    region: '서울/경기',
+    lat: 37.2636,
+    lon: 127.0286,
+    tourAreaCode: '31',
+  },
+  {
+    id: 'city_03',
+    name: '인천',
+    region: '서울/경기',
+    lat: 37.4563,
+    lon: 126.7052,
+    tourAreaCode: '2',
+  },
+  { id: 'city_04', name: '춘천', region: '강원', lat: 37.8813, lon: 127.7298, tourAreaCode: '32' },
+  { id: 'city_05', name: '강릉', region: '강원', lat: 37.7519, lon: 128.8761, tourAreaCode: '32' },
+  { id: 'city_06', name: '천안', region: '충청', lat: 36.8151, lon: 127.1139, tourAreaCode: '34' },
+  { id: 'city_07', name: '대전', region: '충청', lat: 36.3504, lon: 127.3845, tourAreaCode: '3' },
+  { id: 'city_08', name: '청주', region: '충청', lat: 36.6424, lon: 127.489, tourAreaCode: '33' },
+  { id: 'city_09', name: '전주', region: '전라', lat: 35.8242, lon: 127.148, tourAreaCode: '37' },
+  { id: 'city_10', name: '광주', region: '전라', lat: 35.1595, lon: 126.8526, tourAreaCode: '5' },
+  { id: 'city_11', name: '여수', region: '전라', lat: 34.7604, lon: 127.6622, tourAreaCode: '38' },
+  { id: 'city_12', name: '대구', region: '경상', lat: 35.8714, lon: 128.6014, tourAreaCode: '4' },
+  { id: 'city_13', name: '부산', region: '경상', lat: 35.1796, lon: 129.0756, tourAreaCode: '6' },
+  { id: 'city_14', name: '포항', region: '경상', lat: 36.019, lon: 129.3435, tourAreaCode: '35' },
+  { id: 'city_15', name: '제주', region: '제주', lat: 33.4996, lon: 126.5312, tourAreaCode: '39' },
 ])
 
 const weatherList = ref([])
@@ -67,6 +89,37 @@ const toggleFavorite = (city) => {
   const idx = favoriteIds.value.indexOf(city.id)
   if (idx === -1) favoriteIds.value.push(city.id)
   else favoriteIds.value.splice(idx, 1)
+}
+
+/* ─────────────────────────────────────────────
+   축제 배지 (C-1) - 실패해도 날씨 카드엔 영향 없음
+   ───────────────────────────────────────────── */
+const festivalBadges = ref({}) // cityId -> { label, color } | null
+
+const computeBadge = (festivals) => {
+  const ongoing = festivals.filter((f) => f.status.key === 'ongoing')
+  if (ongoing.length > 0) return { label: `🎉 축제 ${ongoing.length}`, color: '#43a047' }
+  const soon = festivals.filter((f) => f.status.key === 'soon')
+  if (soon.length > 0) {
+    const nearest = Math.min(...soon.map((f) => f.status.dday))
+    return { label: `🔜 D-${nearest}`, color: '#fb8c00' }
+  }
+  return null
+}
+
+const loadFestivalBadges = () => {
+  const uniqueCodes = [...new Set(cities.value.map((c) => c.tourAreaCode))]
+  uniqueCodes.forEach((code) => {
+    fetchFestivalsByArea(code)
+      .then((festivals) => {
+        cities.value
+          .filter((c) => c.tourAreaCode === code)
+          .forEach((c) => {
+            festivalBadges.value[c.id] = computeBadge(festivals)
+          })
+      })
+      .catch((err) => console.warn('축제 정보 조회 실패', code, err))
+  })
 }
 
 /* ─────────────────────────────────────────────
@@ -181,6 +234,7 @@ const loadMyLocation = () => {
 onMounted(() => {
   loadAllWeather()
   loadMyLocation()
+  loadFestivalBadges()
 })
 
 /* ─────────────────────────────────────────────
@@ -322,6 +376,7 @@ const showDetail = (city) => {
           :city-item="city"
           :is-selected="selectedId === city.id"
           :is-favorite="favoriteIds.includes(city.id)"
+          :festival-badge="festivalBadges[city.id]"
           @select-card="selectCity"
           @click-detail="showDetail"
           @toggle-favorite="toggleFavorite"
