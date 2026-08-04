@@ -73,7 +73,10 @@ const handleFavorite = () => {
     <div class="card-body">
       <p class="city-name">
         {{ cityItem.name }}
-        <span class="city-region">{{ cityItem.region }}</span>
+        <span v-if="cityItem.isMyLocation" class="city-region my-location">
+          <i class="fa-solid fa-location-crosshairs"></i> 내 위치
+        </span>
+        <span v-else class="city-region">{{ cityItem.region }}</span>
         <span class="city-status">{{ cityItem.status }}</span>
       </p>
 
@@ -163,6 +166,9 @@ const handleFavorite = () => {
   padding: 2px 8px;
   border-radius: 999px;
   vertical-align: middle;
+}
+.city-region.my-location {
+  background-color: #ff7faa;
 }
 .city-status {
   margin-left: 6px;

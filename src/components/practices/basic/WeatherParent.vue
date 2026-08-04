@@ -127,6 +127,21 @@ const loadAllWeather = async () => {
   }
 }
 
+// 좌표 → 실제 지명 변환 (역지오코딩)
+const reverseGeocode = async (lat, lon) => {
+  try {
+    const res = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`,
+    )
+    if (!res.ok) throw new Error('역지오코딩 실패')
+    const data = await res.json()
+    return data.city || data.locality || '내 위치'
+  } catch (err) {
+    console.warn('지명을 가져오지 못했어요.', err)
+    return '내 위치'
+  }
+}
+
 /* ─────────────────────────────────────────────
    4. 내 위치 (Geolocation API)
    ───────────────────────────────────────────── */
@@ -140,13 +155,21 @@ const loadMyLocation = () => {
   navigator.geolocation.getCurrentPosition(
     async (position) => {
       try {
-        const myCity = await fetchCityWeather({
-          id: 'my-location',
-          name: '내 위치',
-          region: '내 위치',
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        })
+        const { latitude, longitude } = position.coords
+        const [myCity, placeName] = await Promise.all([
+          fetchCityWeather({
+            id: 'my-location',
+            name: '내 위치',
+            region: '내 위치',
+            lat: latitude,
+            lon: longitude,
+          }),
+          reverseGeocode(latitude, longitude),
+        ])
+
+        myCity.name = placeName // 실제 지명으로 교체 (예: "서울")
+        myCity.isMyLocation = true // 카드에서 "내 위치" 배지 표시용 플래그
+
         weatherList.value = [myCity, ...weatherList.value.filter((c) => c.id !== 'my-location')]
         myLocationState.value = 'done'
       } catch (err) {
