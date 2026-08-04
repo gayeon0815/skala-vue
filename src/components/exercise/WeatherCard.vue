@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { useConfigStore } from '@/stores/configStore'
 
 const props = defineProps({
   cityItem: {
@@ -17,6 +18,16 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['select-card', 'click-detail', 'toggle-favorite'])
+
+const configStore = useConfigStore()
+
+const displayTemp = computed(() => {
+  const rawTemp = props.cityItem.temp // 원본 데이터는 항상 섭씨
+  if (configStore.unit === 'fahrenheit') {
+    return Math.round((rawTemp * 9) / 5 + 32)
+  }
+  return rawTemp
+})
 
 const theme = computed(() => {
   switch (props.cityItem.status) {
@@ -81,7 +92,9 @@ const handleFavorite = () => {
       </p>
 
       <div class="city-meta">
-        <p class="city-temp">{{ cityItem.temp }}<span class="unit">°C</span></p>
+        <p class="city-temp">
+          {{ displayTemp }}<span class="unit">{{ configStore.unitSymbol }}</span>
+        </p>
         <span
           class="humidity"
           :style="{ color: humidityInfo.color, backgroundColor: humidityInfo.wash }"
@@ -97,7 +110,7 @@ const handleFavorite = () => {
 
     <div class="card-actions">
       <button class="favorite-btn" :class="{ active: isFavorite }" @click.stop="handleFavorite">
-        <i :class="isFavorite ? 'fa-solid fa-star' : 'fa-regular fa-star'"></i>
+        <i class="fa-solid fa-star"></i>
       </button>
       <button class="detail-btn" @click.stop="handleDetail">
         <i class="fa-solid fa-circle-info"></i> 상세보기
