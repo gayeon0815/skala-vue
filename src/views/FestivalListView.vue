@@ -1,6 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { fetchFestivalsByArea, sortFestivals } from '@/components/exercise/festivalService'
+import {
+  fetchFestivalsByArea,
+  sortFestivals,
+  getMockFestivals,
+} from '@/components/exercise/festivalService'
 import FestivalList from '@/components/exercise/FestivalList.vue'
 
 const cities = [
@@ -44,6 +48,14 @@ const load = async () => {
         const target = matched || candidates[0]
         merged.push({ ...f, cityId: target?.id, cityName: target?.name })
       })
+    })
+    // 실제 API에 데이터가 없는 도시는 예시(실제 날짜 기반) 데이터로 보완
+    cities.forEach((c) => {
+      const hasRealData = merged.some((f) => f.cityId === c.id)
+      if (!hasRealData) {
+        const mock = getMockFestivals(c.name).map((f) => ({ ...f, cityId: c.id, cityName: c.name }))
+        merged.push(...mock)
+      }
     })
     allFestivals.value = sortFestivals(merged)
     status.value = 'ok'

@@ -34,7 +34,7 @@ const handleLogout = () => {
         <RouterLink to="/" class="nav-link">홈</RouterLink>
         <RouterLink to="/about" class="nav-link">소개</RouterLink>
         <RouterLink to="/festivals" class="nav-link">축제</RouterLink>
-        <RouterLink to="/mock-api" class="nav-link">Mock API</RouterLink>
+        <RouterLink to="/kbo" class="nav-link">KBO</RouterLink>
       </div>
     </nav>
 

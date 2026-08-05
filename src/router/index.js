@@ -27,9 +27,9 @@ const router = createRouter({
       name: 'weatherDetail',
       component: () => import('../views/WeatherDetailView.vue'),
     },
-    { path: '/mock-api', name: 'mockApi', component: () => import('../views/MockApiView.vue') },
     { path: '/signup', name: 'signup', component: () => import('../views/SignupView.vue') },
     { path: '/login', name: 'login', component: () => import('../views/LoginView.vue') },
+    { path: '/kbo', name: 'kbo', component: () => import('../views/KboView.vue') },
     {
       path: '/:pathMatch(.*)*',
       name: 'notFound',

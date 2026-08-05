@@ -64,3 +64,50 @@ export function sortFestivals(list) {
     return r !== 0 ? r : (a.startDate || '').localeCompare(b.startDate || '')
   })
 }
+
+/* ─────────────────────────────────────────────
+   오픈API에 아직 등록 안 된 지역을 위한 예시(mock) 데이터
+   실제 API가 0건을 반환할 때만 보완용으로 사용됨
+   ───────────────────────────────────────────── */
+const addDaysStr = (days) => {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
+}
+
+const rawMockFestivals = {
+  서울: [
+    {
+      title: '한강 페스티벌',
+      address: '서울특별시 마포구 마포나루길 407 (망원동) 망원한강공원',
+      startDate: '20260801',
+      endDate: '20260816',
+    },
+  ],
+  춘천: [
+    {
+      title: '춘천 썸머워터 페스티벌',
+      address: '강원특별자치도 춘천시 삼천동 200-9 춘천수변공원',
+      startDate: '20260717',
+      endDate: '20260817',
+    },
+  ],
+}
+
+export function getMockFestivals(cityName) {
+  const entries = rawMockFestivals[cityName] || []
+  return entries.map((f, i) => {
+    const startDate = f.startDate || addDaysStr(f.startOffset)
+    const endDate = f.endDate || addDaysStr(f.endOffset)
+    return {
+      id: `mock-${cityName}-${i}`,
+      title: f.title,
+      image: '',
+      address: f.address,
+      startDate,
+      endDate,
+      status: toStatus(startDate, endDate),
+      isMock: true,
+    }
+  })
+}

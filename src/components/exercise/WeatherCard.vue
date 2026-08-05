@@ -23,7 +23,7 @@ const emit = defineEmits(['select-card', 'click-detail', 'toggle-favorite'])
 const configStore = useConfigStore()
 
 const displayTemp = computed(() => {
-  const rawTemp = props.cityItem.temp // 원본 데이터는 항상 섭씨
+  const rawTemp = props.cityItem.temp
   if (configStore.unit === 'fahrenheit') {
     return Math.round((rawTemp * 9) / 5 + 32)
   }
@@ -80,14 +80,12 @@ const handleFavorite = () => {
     :style="{ '--wash': theme.wash, '--accent': theme.accent }"
     @click="handleSelect"
   >
-    <span
-      v-if="festivalBadge"
-      class="festival-badge"
-      :style="{ backgroundColor: festivalBadge.color }"
-    >
-      {{ festivalBadge.label }}
-    </span>
-    <div class="icon-bubble"><i :class="theme.icon"></i></div>
+    <div class="icon-wrap">
+      <div class="icon-bubble"><i :class="theme.icon"></i></div>
+      <div v-if="festivalBadge" class="festival-sticker">
+        <i class="fa-solid fa-champagne-glasses"></i>
+      </div>
+    </div>
 
     <div class="card-body">
       <p class="city-name">
@@ -149,8 +147,13 @@ const handleFavorite = () => {
   box-shadow: 0 0 0 4px rgba(69, 65, 95, 0.08);
 }
 
-.icon-bubble {
+.icon-wrap {
+  position: relative;
   flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+}
+.icon-bubble {
   width: 52px;
   height: 52px;
   display: flex;
@@ -165,6 +168,22 @@ const handleFavorite = () => {
 }
 .card:hover .icon-bubble {
   transform: rotate(-8deg) scale(1.05);
+}
+.festival-sticker {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #ffffff;
+  background-color: #ff7faa;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(69, 65, 95, 0.2);
 }
 
 .card-body {
@@ -278,16 +297,6 @@ const handleFavorite = () => {
 }
 .detail-btn:hover {
   background-color: var(--accent);
-  color: #ffffff;
-}
-.festival-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
   color: #ffffff;
 }
 </style>

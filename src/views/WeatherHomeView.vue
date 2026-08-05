@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchFestivalsByArea } from '@/components/exercise/festivalService'
+import { fetchFestivalsByArea, getMockFestivals } from '@/components/exercise/festivalService'
 import axios from 'axios'
 import BaseDashboardCard from '@/components/exercise/BaseDashboardCard.vue'
 import SearchBar from '@/components/exercise/SearchBar.vue'
@@ -115,10 +115,18 @@ const loadFestivalBadges = () => {
         cities.value
           .filter((c) => c.tourAreaCode === code)
           .forEach((c) => {
-            festivalBadges.value[c.id] = computeBadge(festivals)
+            const source = festivals.length > 0 ? festivals : getMockFestivals(c.name)
+            festivalBadges.value[c.id] = computeBadge(source)
           })
       })
-      .catch((err) => console.warn('축제 정보 조회 실패', code, err))
+      .catch((err) => {
+        console.warn('축제 정보 조회 실패', code, err)
+        cities.value
+          .filter((c) => c.tourAreaCode === code)
+          .forEach((c) => {
+            festivalBadges.value[c.id] = computeBadge(getMockFestivals(c.name))
+          })
+      })
   })
 }
 
