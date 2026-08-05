@@ -9,48 +9,9 @@ import {
   getMockFestivals,
 } from '@/components/exercise/festivalService'
 import FestivalList from '@/components/exercise/FestivalList.vue'
+import { cities } from '@/components/exercise/cityList'
 
 const route = useRoute()
-
-const cities = [
-  {
-    id: 'city_01',
-    name: '서울',
-    region: '서울/경기',
-    lat: 37.5665,
-    lon: 126.978,
-    tourAreaCode: '1',
-  },
-  {
-    id: 'city_02',
-    name: '수원',
-    region: '서울/경기',
-    lat: 37.2636,
-    lon: 127.0286,
-    tourAreaCode: '31',
-  },
-  {
-    id: 'city_03',
-    name: '인천',
-    region: '서울/경기',
-    lat: 37.4563,
-    lon: 126.7052,
-    tourAreaCode: '2',
-  },
-  { id: 'city_04', name: '춘천', region: '강원', lat: 37.8813, lon: 127.7298, tourAreaCode: '32' },
-  { id: 'city_05', name: '강릉', region: '강원', lat: 37.7519, lon: 128.8761, tourAreaCode: '32' },
-  { id: 'city_06', name: '천안', region: '충청', lat: 36.8151, lon: 127.1139, tourAreaCode: '34' },
-  { id: 'city_07', name: '대전', region: '충청', lat: 36.3504, lon: 127.3845, tourAreaCode: '3' },
-  { id: 'city_08', name: '청주', region: '충청', lat: 36.6424, lon: 127.489, tourAreaCode: '33' },
-  { id: 'city_09', name: '전주', region: '전라', lat: 35.8242, lon: 127.148, tourAreaCode: '37' },
-  { id: 'city_10', name: '광주', region: '전라', lat: 35.1595, lon: 126.8526, tourAreaCode: '5' },
-  { id: 'city_11', name: '여수', region: '전라', lat: 34.7604, lon: 127.6622, tourAreaCode: '38' },
-  { id: 'city_12', name: '대구', region: '경상', lat: 35.8714, lon: 128.6014, tourAreaCode: '4' },
-  { id: 'city_13', name: '부산', region: '경상', lat: 35.1796, lon: 129.0756, tourAreaCode: '6' },
-  { id: 'city_14', name: '포항', region: '경상', lat: 36.019, lon: 129.3435, tourAreaCode: '35' },
-  { id: 'city_15', name: '제주', region: '제주', lat: 33.4996, lon: 126.5312, tourAreaCode: '39' },
-  { id: 'city_16', name: '창원', region: '경상', lat: 35.228, lon: 128.6811, tourAreaCode: '36' },
-]
 
 const city = ref(null)
 const isLoading = ref(true)

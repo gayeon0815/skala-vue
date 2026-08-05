@@ -10,50 +10,17 @@ import RegionFilter from '@/components/exercise/RegionFilter.vue'
 import SortSelect from '@/components/exercise/SortSelect.vue'
 import WeatherCard from '@/components/exercise/WeatherCard.vue'
 import UnitToggler from '@/components/exercise/UnitToggler.vue'
+import { useMoodStore } from '@/stores/moodStore'
+import { cities } from '@/components/exercise/cityList'
 
 const router = useRouter()
+const moodStore = useMoodStore()
 
 /* ─────────────────────────────────────────────
    1. 반응형 상태 관리
    ───────────────────────────────────────────── */
-const cities = ref([
-  {
-    id: 'city_01',
-    name: '서울',
-    region: '서울/경기',
-    lat: 37.5665,
-    lon: 126.978,
-    tourAreaCode: '1',
-  },
-  {
-    id: 'city_02',
-    name: '수원',
-    region: '서울/경기',
-    lat: 37.2636,
-    lon: 127.0286,
-    tourAreaCode: '31',
-  },
-  {
-    id: 'city_03',
-    name: '인천',
-    region: '서울/경기',
-    lat: 37.4563,
-    lon: 126.7052,
-    tourAreaCode: '2',
-  },
-  { id: 'city_04', name: '춘천', region: '강원', lat: 37.8813, lon: 127.7298, tourAreaCode: '32' },
-  { id: 'city_05', name: '강릉', region: '강원', lat: 37.7519, lon: 128.8761, tourAreaCode: '32' },
-  { id: 'city_06', name: '천안', region: '충청', lat: 36.8151, lon: 127.1139, tourAreaCode: '34' },
-  { id: 'city_07', name: '대전', region: '충청', lat: 36.3504, lon: 127.3845, tourAreaCode: '3' },
-  { id: 'city_08', name: '청주', region: '충청', lat: 36.6424, lon: 127.489, tourAreaCode: '33' },
-  { id: 'city_09', name: '전주', region: '전라', lat: 35.8242, lon: 127.148, tourAreaCode: '37' },
-  { id: 'city_10', name: '광주', region: '전라', lat: 35.1595, lon: 126.8526, tourAreaCode: '5' },
-  { id: 'city_11', name: '여수', region: '전라', lat: 34.7604, lon: 127.6622, tourAreaCode: '38' },
-  { id: 'city_12', name: '대구', region: '경상', lat: 35.8714, lon: 128.6014, tourAreaCode: '4' },
-  { id: 'city_13', name: '부산', region: '경상', lat: 35.1796, lon: 129.0756, tourAreaCode: '6' },
-  { id: 'city_14', name: '포항', region: '경상', lat: 36.019, lon: 129.3435, tourAreaCode: '35' },
-  { id: 'city_15', name: '제주', region: '제주', lat: 33.4996, lon: 126.5312, tourAreaCode: '39' },
-])
+const PAGE_SIZE = 7
+const visibleCount = ref(PAGE_SIZE)
 
 const weatherList = ref([])
 const isLoading = ref(true)
@@ -108,11 +75,11 @@ const computeBadge = (festivals) => {
 }
 
 const loadFestivalBadges = () => {
-  const uniqueCodes = [...new Set(cities.value.map((c) => c.tourAreaCode))]
+  const uniqueCodes = [...new Set(cities.map((c) => c.tourAreaCode))]
   uniqueCodes.forEach((code) => {
     fetchFestivalsByArea(code)
       .then((festivals) => {
-        cities.value
+        cities
           .filter((c) => c.tourAreaCode === code)
           .forEach((c) => {
             const source = festivals.length > 0 ? festivals : getMockFestivals(c.name)
@@ -121,7 +88,7 @@ const loadFestivalBadges = () => {
       })
       .catch((err) => {
         console.warn('축제 정보 조회 실패', code, err)
-        cities.value
+        cities
           .filter((c) => c.tourAreaCode === code)
           .forEach((c) => {
             festivalBadges.value[c.id] = computeBadge(getMockFestivals(c.name))
@@ -174,18 +141,37 @@ const fetchCityWeather = async (city) => {
   }
 }
 
-const loadAllWeather = async () => {
-  isLoading.value = true
-  errorMessage.value = ''
+// 아직 날씨를 안 불러온 도시들만 골라서 불러오기
+const loadWeatherFor = async (targetCities) => {
+  const notLoaded = targetCities.filter((c) => !weatherList.value.some((w) => w.id === c.id))
+  if (notLoaded.length === 0) return
+
   try {
-    const results = await Promise.all(cities.value.map(fetchCityWeather))
-    weatherList.value = results
+    const results = await Promise.all(notLoaded.map(fetchCityWeather))
+    weatherList.value = [...weatherList.value, ...results]
   } catch (err) {
     console.error(err)
     errorMessage.value = '날씨 정보를 불러오지 못했어요. 네트워크 상태를 확인해주세요.'
-  } finally {
-    isLoading.value = false
   }
+}
+
+const loadAllWeather = async () => {
+  isLoading.value = true
+  errorMessage.value = ''
+  // 처음엔 즐겨찾기 + 앞쪽 도시들만 (더보기로 나머지 로드)
+  const initial = [
+    ...cities.filter((c) => favoriteIds.value.includes(c.id)),
+    ...cities.filter((c) => !favoriteIds.value.includes(c.id)),
+  ].slice(0, PAGE_SIZE)
+  await loadWeatherFor(initial)
+  isLoading.value = false
+}
+
+// 더보기 - 다음 7개 도시 로드
+const loadMore = async () => {
+  const next = orderedCities.value.slice(visibleCount.value, visibleCount.value + PAGE_SIZE)
+  await loadWeatherFor(next)
+  visibleCount.value += PAGE_SIZE
 }
 
 /* ─────────────────────────────────────────────
@@ -226,6 +212,7 @@ const loadMyLocation = () => {
         myCity.name = placeName
         myCity.isMyLocation = true
         weatherList.value = [myCity, ...weatherList.value.filter((c) => c.id !== 'my-location')]
+        moodStore.setDefaultStatus(myCity.status)
         myLocationState.value = 'done'
       } catch (err) {
         console.error(err)
@@ -248,41 +235,82 @@ onMounted(() => {
 /* ─────────────────────────────────────────────
    5. computed - 필터 + 정렬 + 우선순위
    ───────────────────────────────────────────── */
-const displayedWeatherList = computed(() => {
-  let list = [...weatherList.value]
+/* 우선순위(즐겨찾기 → 나머지)로 정렬된 전체 도시 목록 */
+const orderedCities = computed(() => {
+  const priorityOf = (city) => (favoriteIds.value.includes(city.id) ? 0 : 1)
+  return [...cities].sort((a, b) => priorityOf(a) - priorityOf(b))
+})
+
+/* 검색어/필터/정렬 중이면 전체 도시를 대상으로 */
+const isFiltering = computed(
+  () =>
+    searchQuery.value.trim() !== '' ||
+    selectedRegion.value !== '전체' ||
+    selectedStatus.value !== '전체' ||
+    selectedSort.value !== '',
+)
+
+/* 검색 결과에 해당하는 '도시 목록'(날씨 로드 여부와 무관) */
+const matchedCities = computed(() => {
+  let list = orderedCities.value
 
   if (selectedRegion.value !== '전체') {
-    list = list.filter((city) => city.region === selectedRegion.value)
-  }
-  if (selectedStatus.value !== '전체') {
-    list = list.filter((city) => city.status === selectedStatus.value)
+    list = list.filter((c) => c.region === selectedRegion.value)
   }
   const query = searchQuery.value.trim()
   if (query) {
-    list = list.filter((city) => city.name.includes(query))
+    list = list.filter((c) => c.name.includes(query))
+  }
+  return list
+})
+
+/* 검색어가 바뀌면 해당 도시들의 날씨를 자동으로 불러옴 */
+watch(matchedCities, (list) => {
+  if (isFiltering.value) loadWeatherFor(list.slice(0, 20))
+})
+
+const displayedWeatherList = computed(() => {
+  const myLocation = weatherList.value.find((w) => w.id === 'my-location')
+
+  // 검색/필터 중이면: 조건에 맞는 도시 전부 (페이징 없음)
+  // 아니면: 앞에서부터 visibleCount개만
+  const targetCities = isFiltering.value
+    ? matchedCities.value
+    : orderedCities.value.slice(0, visibleCount.value)
+
+  let list = targetCities.map((c) => weatherList.value.find((w) => w.id === c.id)).filter(Boolean)
+
+  // 내 위치는 항상 맨 앞 (검색 중일 땐 검색어와 일치할 때만)
+  if (myLocation) {
+    const q = searchQuery.value.trim()
+    const matchesQuery = !q || myLocation.name.includes(q)
+    const matchesRegion = selectedRegion.value === '전체' || selectedRegion.value === '내 위치'
+    if (matchesQuery && matchesRegion) list = [myLocation, ...list]
+  }
+
+  if (selectedStatus.value !== '전체') {
+    list = list.filter((city) => city.status === selectedStatus.value)
   }
 
   switch (selectedSort.value) {
     case 'temp-desc':
-      list.sort((a, b) => b.temp - a.temp)
+      list = [...list].sort((a, b) => b.temp - a.temp)
       break
     case 'temp-asc':
-      list.sort((a, b) => a.temp - b.temp)
+      list = [...list].sort((a, b) => a.temp - b.temp)
       break
     case 'name-asc':
-      list.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
+      list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'ko'))
       break
   }
-
-  const priorityOf = (city) => {
-    if (city.id === 'my-location') return 0
-    if (favoriteIds.value.includes(city.id)) return 1
-    return 2
-  }
-  list.sort((a, b) => priorityOf(a) - priorityOf(b))
 
   return list
 })
+
+/* 더보기 버튼 표시 여부 */
+const hasMore = computed(
+  () => !isFiltering.value && visibleCount.value < orderedCities.value.length,
+)
 
 watch(selectedCityInfo, (newInfo, oldInfo) => {
   console.log(`👁️ [watch] 상태바 변경: "${oldInfo}" → "${newInfo}"`)
@@ -306,14 +334,21 @@ const updateStatus = (val) => {
 const updateRegion = (val) => {
   selectedRegion.value = val
 }
-const updateSort = (val) => {
+const updateSort = async (val) => {
   selectedSort.value = val
+  // 전체 기준으로 정렬하려면 모든 도시의 날씨가 필요해요
+  if (val !== '') {
+    isLoading.value = true
+    await loadWeatherFor(cities)
+    isLoading.value = false
+  }
 }
 
 const selectCity = (city) => {
   selectedId.value = city.id
   selectedCityInfo.value = `${city.name}이 선택되었습니다.`
   selectedMoodStatus.value = city.status
+  moodStore.setStatus(city.status) // moodStore에 상태값 전달
 }
 
 // 상세보기 → Programmatic Navigation
@@ -394,6 +429,10 @@ const showDetail = (city) => {
       <p v-if="displayedWeatherList.length === 0" class="empty-result">
         <i class="fa-solid fa-face-frown"></i> 조건에 맞는 도시가 없습니다.
       </p>
+
+      <button v-if="hasMore" class="load-more-btn" @click="loadMore">
+        <i class="fa-solid fa-chevron-down"></i> 더 보기
+      </button>
     </template>
   </BaseDashboardCard>
 
@@ -620,5 +659,26 @@ const showDetail = (city) => {
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
+}
+.load-more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  border: 2px dashed #f1ecff;
+  border-radius: 16px;
+  background-color: #ffffff;
+  color: #a6a0be;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.load-more-btn:hover {
+  border-color: #ff7faa;
+  color: #ff7faa;
 }
 </style>

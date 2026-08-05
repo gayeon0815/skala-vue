@@ -3,6 +3,10 @@ import { RouterLink, RouterView } from 'vue-router'
 import FeedbackWidget from '@/components/exercise/FeedbackWidget.vue'
 import { useAuthStore } from '@/stores/authStore'
 import { ElMessage } from 'element-plus'
+import RecommendPanel from '@/components/exercise/RecommendPanel.vue'
+import { useMoodStore } from '@/stores/moodStore'
+
+const moodStore = useMoodStore()
 
 const authStore = useAuthStore()
 
@@ -38,9 +42,12 @@ const handleLogout = () => {
       </div>
     </nav>
 
-    <main class="weather-app">
-      <RouterView />
-    </main>
+    <div class="content-row">
+      <main class="weather-app">
+        <RouterView />
+      </main>
+      <RecommendPanel :status="moodStore.currentStatus" />
+    </div>
   </div>
   <FeedbackWidget />
 </template>
@@ -158,6 +165,26 @@ const handleLogout = () => {
     BlinkMacSystemFont,
     sans-serif;
   box-sizing: border-box;
+}
+
+.content-row {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+.content-row .weather-app {
+  flex: 1;
+  min-width: 0;
+  max-width: 720px;
+}
+
+@media (max-width: 900px) {
+  .content-row {
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
 @media (max-width: 480px) {
