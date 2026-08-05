@@ -11,7 +11,8 @@ import SortSelect from '@/components/exercise/SortSelect.vue'
 import WeatherCard from '@/components/exercise/WeatherCard.vue'
 import UnitToggler from '@/components/exercise/UnitToggler.vue'
 import { useMoodStore } from '@/stores/moodStore'
-import { cities } from '@/components/exercise/cityList'
+import { cities, overseasCities, overseasRegions } from '@/components/exercise/cityList'
+import ScopeToggler from '@/components/exercise/ScopeToggler.vue'
 
 const router = useRouter()
 const moodStore = useMoodStore()
@@ -21,6 +22,18 @@ const moodStore = useMoodStore()
    ───────────────────────────────────────────── */
 const PAGE_SIZE = 7
 const visibleCount = ref(PAGE_SIZE)
+
+const scope = ref('domestic') // 'domestic' | 'overseas'
+
+// 현재 스코프에 해당하는 도시 목록
+const activeCities = computed(() => (scope.value === 'domestic' ? cities : overseasCities))
+
+// 현재 스코프에 맞는 지역 필터 목록
+const activeRegions = computed(() =>
+  scope.value === 'domestic'
+    ? ['전체', '내 위치', '서울/경기', '강원', '충청', '전라', '경상', '제주']
+    : overseasRegions,
+)
 
 const weatherList = ref([])
 const isLoading = ref(true)
@@ -142,29 +155,27 @@ const fetchCityWeather = async (city) => {
 }
 
 // 아직 날씨를 안 불러온 도시들만 골라서 불러오기
+// 아직 날씨를 안 불러온 도시들만 골라서 불러오기
 const loadWeatherFor = async (targetCities) => {
   const notLoaded = targetCities.filter((c) => !weatherList.value.some((w) => w.id === c.id))
   if (notLoaded.length === 0) return
 
+  isLoading.value = true
   try {
     const results = await Promise.all(notLoaded.map(fetchCityWeather))
     weatherList.value = [...weatherList.value, ...results]
   } catch (err) {
     console.error(err)
     errorMessage.value = '날씨 정보를 불러오지 못했어요. 네트워크 상태를 확인해주세요.'
+  } finally {
+    isLoading.value = false
   }
 }
 
 const loadAllWeather = async () => {
-  isLoading.value = true
   errorMessage.value = ''
-  // 처음엔 즐겨찾기 + 앞쪽 도시들만 (더보기로 나머지 로드)
-  const initial = [
-    ...cities.filter((c) => favoriteIds.value.includes(c.id)),
-    ...cities.filter((c) => !favoriteIds.value.includes(c.id)),
-  ].slice(0, PAGE_SIZE)
+  const initial = orderedCities.value.slice(0, PAGE_SIZE)
   await loadWeatherFor(initial)
-  isLoading.value = false
 }
 
 // 더보기 - 다음 7개 도시 로드
@@ -238,7 +249,7 @@ onMounted(() => {
 /* 우선순위(즐겨찾기 → 나머지)로 정렬된 전체 도시 목록 */
 const orderedCities = computed(() => {
   const priorityOf = (city) => (favoriteIds.value.includes(city.id) ? 0 : 1)
-  return [...cities].sort((a, b) => priorityOf(a) - priorityOf(b))
+  return [...activeCities.value].sort((a, b) => priorityOf(a) - priorityOf(b))
 })
 
 /* 검색어/필터/정렬 중이면 전체 도시를 대상으로 */
@@ -280,8 +291,8 @@ const displayedWeatherList = computed(() => {
 
   let list = targetCities.map((c) => weatherList.value.find((w) => w.id === c.id)).filter(Boolean)
 
-  // 내 위치는 항상 맨 앞 (검색 중일 땐 검색어와 일치할 때만)
-  if (myLocation) {
+  // 내 위치는 국내 모드에서만, 항상 맨 앞
+  if (myLocation && scope.value === 'domestic') {
     const q = searchQuery.value.trim()
     const matchesQuery = !q || myLocation.name.includes(q)
     const matchesRegion = selectedRegion.value === '전체' || selectedRegion.value === '내 위치'
@@ -336,12 +347,20 @@ const updateRegion = (val) => {
 }
 const updateSort = async (val) => {
   selectedSort.value = val
-  // 전체 기준으로 정렬하려면 모든 도시의 날씨가 필요해요
   if (val !== '') {
-    isLoading.value = true
-    await loadWeatherFor(cities)
-    isLoading.value = false
+    await loadWeatherFor(activeCities.value)
   }
+}
+const updateScope = async (val) => {
+  if (scope.value === val) return
+  scope.value = val
+  // 스코프 바뀌면 필터/검색/페이징 초기화
+  searchQuery.value = ''
+  selectedRegion.value = '전체'
+  selectedStatus.value = '전체'
+  selectedSort.value = ''
+  visibleCount.value = PAGE_SIZE
+  await loadAllWeather()
 }
 
 const selectCity = (city) => {
@@ -367,7 +386,7 @@ const showDetail = (city) => {
 
   <header class="app-header">
     <div class="header-text">
-      <h1 class="app-title">과제 : 날씨 다이어리</h1>
+      <h1 class="app-title">날씨 다이어리</h1>
       <p class="app-subtitle">실시간 날씨를 확인해보세요</p>
     </div>
     <div class="header-right">
@@ -375,6 +394,8 @@ const showDetail = (city) => {
       <span class="badge"><i class="fa-solid fa-puzzle-piece"></i> Vue.js</span>
     </div>
   </header>
+
+  <ScopeToggler :current-scope="scope" @update-scope="updateScope" />
 
   <BaseDashboardCard>
     <SearchBar :current-query="searchQuery" @update-query="updateQuery" />
@@ -385,7 +406,11 @@ const showDetail = (city) => {
       <FilterBar :current-status="selectedStatus" @update-status="updateStatus" />
       <SortSelect :current-sort="selectedSort" @update-sort="updateSort" />
     </div>
-    <RegionFilter :current-region="selectedRegion" @update-region="updateRegion" />
+    <RegionFilter
+      :current-region="selectedRegion"
+      :regions="activeRegions"
+      @update-region="updateRegion"
+    />
     <p v-if="myLocationState === 'loading'" class="location-hint">
       <i class="fa-solid fa-location-crosshairs fa-spin"></i> 내 위치를 찾는 중이에요...
     </p>
@@ -419,7 +444,7 @@ const showDetail = (city) => {
           :city-item="city"
           :is-selected="selectedId === city.id"
           :is-favorite="favoriteIds.includes(city.id)"
-          :festival-badge="festivalBadges[city.id]"
+          :festival-badge="scope === 'domestic' ? festivalBadges[city.id] : null"
           @select-card="selectCity"
           @click-detail="showDetail"
           @toggle-favorite="toggleFavorite"

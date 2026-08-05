@@ -2,7 +2,10 @@ const TOUR_BASE = 'https://apis.data.go.kr/B551011/KorService2/searchFestival2'
 
 const parseDate = (yyyymmdd) => {
   if (!yyyymmdd || yyyymmdd.length !== 8) return null
-  return new Date(`${yyyymmdd.slice(0, 4)}-${yyyymmdd.slice(4, 6)}-${yyyymmdd.slice(6, 8)}`)
+  const year = Number(yyyymmdd.slice(0, 4))
+  const month = Number(yyyymmdd.slice(4, 6)) - 1 // 월은 0부터 시작
+  const day = Number(yyyymmdd.slice(6, 8))
+  return new Date(year, month, day) // 로컬 시간 기준 자정
 }
 
 const toStatus = (startDate, endDate) => {
@@ -82,6 +85,23 @@ const rawMockFestivals = {
       address: '서울특별시 마포구 마포나루길 407 (망원동) 망원한강공원',
       startDate: '20260801',
       endDate: '20260816',
+      image: 'festival/hangang.jpg',
+    },
+    {
+      title: '성북문화바캉스',
+      address: '서울특별시 성북구 정릉로 279 (정릉동) ',
+      startDate: '20260725',
+      endDate: '20260809',
+      image: 'festival/seongbuk.png',
+    },
+  ],
+  보령: [
+    {
+      title: '보령머드축제',
+      address: '충청남도 보령시 신흑동 2282대천해수욕장',
+      startDate: '20260724',
+      endDate: '20260809',
+      image: 'festival/boryeong.jpg',
     },
   ],
   춘천: [
@@ -90,6 +110,34 @@ const rawMockFestivals = {
       address: '강원특별자치도 춘천시 삼천동 200-9 춘천수변공원',
       startDate: '20260717',
       endDate: '20260817',
+      image: 'festival/chuncheon.jpg',
+    },
+  ],
+  인천: [
+    {
+      title: '송도해변축제',
+      address: '인천광역시 연수구 아암대로 764 (송도동) 송도달빛공원',
+      startDate: '20260808',
+      endDate: '20260815',
+      image: 'festival/incheon.jpg',
+    },
+  ],
+  부산: [
+    {
+      title: '부산바다축제',
+      address: '부산광역시 사하구 다대동 다대포 해수욕장',
+      startDate: '20260807',
+      endDate: '20260813',
+      image: 'festival/busan.jpg',
+    },
+  ],
+  전주: [
+    {
+      title: '전주 가맥축제',
+      address: '전북특별자치도 전주시 덕진구 권삼득로 308 (덕진동1가) ',
+      startDate: '20260806',
+      endDate: '20260808',
+      image: 'festival/jeonju.jpg',
     },
   ],
 }
@@ -102,7 +150,7 @@ export function getMockFestivals(cityName) {
     return {
       id: `mock-${cityName}-${i}`,
       title: f.title,
-      image: '',
+      image: f.image ? `${import.meta.env.BASE_URL}${f.image}` : '',
       address: f.address,
       startDate,
       endDate,

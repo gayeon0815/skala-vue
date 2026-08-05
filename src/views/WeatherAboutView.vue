@@ -6,7 +6,7 @@ import { RouterLink } from 'vue-router'
   <div class="about">
     <h1 class="about-title"><i class="fa-solid fa-circle-info"></i> 서비스 소개</h1>
     <p class="about-desc">
-      Open-Meteo API를 통해 대한민국 주요 도시의 실시간 날씨를 보여주는 개인 프로젝트예요. Vue 3
+      OpenWeatherMap API를 통해 대한민국 주요 도시의 실시간 날씨를 보여주는 개인 프로젝트예요. Vue 3
       Composition API, 컴포넌트 분리, Vue Router를 배우며 만들었습니다.
     </p>
 
@@ -15,6 +15,11 @@ import { RouterLink } from 'vue-router'
       <li><i class="fa-solid fa-check"></i> 지역별 · 날씨별 필터링과 정렬</li>
       <li><i class="fa-solid fa-check"></i> 즐겨찾기 및 내 위치 우선 표시</li>
       <li><i class="fa-solid fa-check"></i> 도시별 시간대별 상세 예보 페이지</li>
+      <li>
+        <i class="fa-solid fa-check"></i> KBO 경기 일정 조회 및 날씨에 따른 일정 변경사항 예측
+      </li>
+      <li><i class="fa-solid fa-check"></i> 오늘 날씨에 따른 노래와 음식 추천</li>
+      <li><i class="fa-solid fa-check"></i> 랜덤으로 생성되는 오늘의 질문 리스트</li>
     </ul>
 
     <RouterLink to="/" class="back-btn">

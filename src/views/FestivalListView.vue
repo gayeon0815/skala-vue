@@ -6,28 +6,12 @@ import {
   getMockFestivals,
 } from '@/components/exercise/festivalService'
 import FestivalList from '@/components/exercise/FestivalList.vue'
-
-const cities = [
-  { id: 'city_01', name: '서울', tourAreaCode: '1' },
-  { id: 'city_02', name: '수원', tourAreaCode: '31' },
-  { id: 'city_03', name: '인천', tourAreaCode: '2' },
-  { id: 'city_04', name: '춘천', tourAreaCode: '32' },
-  { id: 'city_05', name: '강릉', tourAreaCode: '32' },
-  { id: 'city_06', name: '천안', tourAreaCode: '34' },
-  { id: 'city_07', name: '대전', tourAreaCode: '3' },
-  { id: 'city_08', name: '청주', tourAreaCode: '33' },
-  { id: 'city_09', name: '전주', tourAreaCode: '37' },
-  { id: 'city_10', name: '광주', tourAreaCode: '5' },
-  { id: 'city_11', name: '여수', tourAreaCode: '38' },
-  { id: 'city_12', name: '대구', tourAreaCode: '4' },
-  { id: 'city_13', name: '부산', tourAreaCode: '6' },
-  { id: 'city_14', name: '포항', tourAreaCode: '35' },
-  { id: 'city_15', name: '제주', tourAreaCode: '39' },
-]
+import { cities } from '@/components/exercise/cityList'
+import RegionFilter from '@/components/exercise/RegionFilter.vue'
 
 const status = ref('loading')
 const allFestivals = ref([])
-const selectedCity = ref('전체')
+const selectedRegion = ref('전체')
 
 const load = async () => {
   status.value = 'loading'
@@ -67,19 +51,25 @@ const load = async () => {
 
 onMounted(load)
 
-const cityOptions = computed(() => ['전체', ...new Set(cities.map((c) => c.name))])
-const filteredFestivals = computed(() =>
-  selectedCity.value === '전체'
-    ? allFestivals.value
-    : allFestivals.value.filter((f) => f.cityName === selectedCity.value),
-)
+const updateRegion = (val) => {
+  selectedRegion.value = val
+}
+
+const filteredFestivals = computed(() => {
+  if (selectedRegion.value === '전체') return allFestivals.value
+  // 축제의 도시가 속한 지역(region)으로 필터링
+  return allFestivals.value.filter((f) => {
+    const city = cities.find((c) => c.id === f.cityId)
+    return city?.region === selectedRegion.value
+  })
+})
 </script>
 
 <template>
   <header class="app-header">
     <div class="header-text">
       <h1 class="app-title">🎪 전국 축제 목록</h1>
-      <p class="app-subtitle">등록된 도시의 진행 중 · 예정 축제를 확인해보세요</p>
+      <p class="app-subtitle">전국의 진행 중 · 예정 축제를 확인해보세요</p>
     </div>
   </header>
 
@@ -93,16 +83,8 @@ const filteredFestivals = computed(() =>
     </button>
   </div>
   <template v-else>
-    <div class="city-filter">
-      <button
-        v-for="c in cityOptions"
-        :key="c"
-        class="filter-chip"
-        :class="{ active: selectedCity === c }"
-        @click="selectedCity = c"
-      >
-        {{ c }}
-      </button>
+    <div class="region-filter-wrap">
+      <RegionFilter :current-region="selectedRegion" @update-region="updateRegion" />
     </div>
     <FestivalList :festivals="filteredFestivals" :show-city-name="true" />
   </template>
@@ -155,25 +137,7 @@ const filteredFestivals = computed(() =>
   font-weight: 700;
   cursor: pointer;
 }
-.city-filter {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+.region-filter-wrap {
   margin-bottom: 18px;
-}
-.filter-chip {
-  padding: 7px 14px;
-  border: 2px solid #f1ecff;
-  border-radius: 999px;
-  background-color: #ffffff;
-  color: #a6a0be;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.filter-chip.active {
-  border-color: #45415f;
-  background-color: #45415f;
-  color: #ffffff;
 }
 </style>

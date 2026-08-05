@@ -121,6 +121,7 @@ export const cities = [
   { id: 'city_32', name: '충주', region: '충청', lat: 36.9911, lon: 127.926, tourAreaCode: '33' },
   { id: 'city_33', name: '아산', region: '충청', lat: 36.7898, lon: 127.0018, tourAreaCode: '34' },
   { id: 'city_34', name: '서산', region: '충청', lat: 36.7848, lon: 126.4503, tourAreaCode: '34' },
+  { id: 'city_49', name: '보령', region: '충청', lat: 36.3333, lon: 126.6128, tourAreaCode: '34' },
   { id: 'city_35', name: '제천', region: '충청', lat: 37.1326, lon: 128.191, tourAreaCode: '33' },
 
   // 전라
@@ -150,3 +151,58 @@ export const cities = [
   { id: 'city_15', name: '제주', region: '제주', lat: 33.4996, lon: 126.5312, tourAreaCode: '39' },
   { id: 'city_48', name: '서귀포', region: '제주', lat: 33.2541, lon: 126.56, tourAreaCode: '39' },
 ]
+
+export const overseasCities = [
+  // 아시아
+  { id: 'ov_01', name: '도쿄', region: '아시아', lat: 35.6762, lon: 139.6503 },
+  { id: 'ov_02', name: '오사카', region: '아시아', lat: 34.6937, lon: 135.5023 },
+  { id: 'ov_03', name: '후쿠오카', region: '아시아', lat: 33.5904, lon: 130.4017 },
+  { id: 'ov_04', name: '삿포로', region: '아시아', lat: 43.0618, lon: 141.3545 },
+  { id: 'ov_05', name: '베이징', region: '아시아', lat: 39.9042, lon: 116.4074 },
+  { id: 'ov_06', name: '상하이', region: '아시아', lat: 31.2304, lon: 121.4737 },
+  { id: 'ov_07', name: '홍콩', region: '아시아', lat: 22.3193, lon: 114.1694 },
+  { id: 'ov_08', name: '타이베이', region: '아시아', lat: 25.033, lon: 121.5654 },
+  { id: 'ov_09', name: '방콕', region: '아시아', lat: 13.7563, lon: 100.5018 },
+  { id: 'ov_10', name: '싱가포르', region: '아시아', lat: 1.3521, lon: 103.8198 },
+  { id: 'ov_11', name: '하노이', region: '아시아', lat: 21.0285, lon: 105.8542 },
+  { id: 'ov_12', name: '다낭', region: '아시아', lat: 16.0544, lon: 108.2022 },
+  { id: 'ov_13', name: '마닐라', region: '아시아', lat: 14.5995, lon: 120.9842 },
+  { id: 'ov_14', name: '쿠알라룸푸르', region: '아시아', lat: 3.139, lon: 101.6869 },
+  { id: 'ov_15', name: '델리', region: '아시아', lat: 28.6139, lon: 77.209 },
+  { id: 'ov_16', name: '두바이', region: '아시아', lat: 25.2048, lon: 55.2708 },
+
+  // 유럽
+  { id: 'ov_17', name: '런던', region: '유럽', lat: 51.5074, lon: -0.1278 },
+  { id: 'ov_18', name: '파리', region: '유럽', lat: 48.8566, lon: 2.3522 },
+  { id: 'ov_19', name: '로마', region: '유럽', lat: 41.9028, lon: 12.4964 },
+  { id: 'ov_20', name: '바르셀로나', region: '유럽', lat: 41.3851, lon: 2.1734 },
+  { id: 'ov_21', name: '마드리드', region: '유럽', lat: 40.4168, lon: -3.7038 },
+  { id: 'ov_22', name: '베를린', region: '유럽', lat: 52.52, lon: 13.405 },
+  { id: 'ov_23', name: '암스테르담', region: '유럽', lat: 52.3676, lon: 4.9041 },
+  { id: 'ov_24', name: '프라하', region: '유럽', lat: 50.0755, lon: 14.4378 },
+  { id: 'ov_25', name: '빈', region: '유럽', lat: 48.2082, lon: 16.3738 },
+  { id: 'ov_26', name: '취리히', region: '유럽', lat: 47.3769, lon: 8.5417 },
+  { id: 'ov_27', name: '이스탄불', region: '유럽', lat: 41.0082, lon: 28.9784 },
+  { id: 'ov_28', name: '리스본', region: '유럽', lat: 38.7223, lon: -9.1393 },
+
+  // 아메리카
+  { id: 'ov_29', name: '뉴욕', region: '아메리카', lat: 40.7128, lon: -74.006 },
+  { id: 'ov_30', name: '로스앤젤레스', region: '아메리카', lat: 34.0522, lon: -118.2437 },
+  { id: 'ov_31', name: '샌프란시스코', region: '아메리카', lat: 37.7749, lon: -122.4194 },
+  { id: 'ov_32', name: '시카고', region: '아메리카', lat: 41.8781, lon: -87.6298 },
+  { id: 'ov_33', name: '토론토', region: '아메리카', lat: 43.6532, lon: -79.3832 },
+  { id: 'ov_34', name: '밴쿠버', region: '아메리카', lat: 49.2827, lon: -123.1207 },
+  { id: 'ov_35', name: '멕시코시티', region: '아메리카', lat: 19.4326, lon: -99.1332 },
+  { id: 'ov_36', name: '상파울루', region: '아메리카', lat: -23.5505, lon: -46.6333 },
+
+  // 오세아니아
+  { id: 'ov_37', name: '시드니', region: '오세아니아', lat: -33.8688, lon: 151.2093 },
+  { id: 'ov_38', name: '멜버른', region: '오세아니아', lat: -37.8136, lon: 144.9631 },
+  { id: 'ov_39', name: '오클랜드', region: '오세아니아', lat: -36.8485, lon: 174.7633 },
+
+  // 아프리카
+  { id: 'ov_40', name: '카이로', region: '아프리카', lat: 30.0444, lon: 31.2357 },
+  { id: 'ov_41', name: '케이프타운', region: '아프리카', lat: -33.9249, lon: 18.4241 },
+]
+
+export const overseasRegions = ['전체', '아시아', '유럽', '아메리카', '오세아니아', '아프리카']

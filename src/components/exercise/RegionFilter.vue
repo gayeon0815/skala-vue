@@ -1,23 +1,19 @@
 <script setup>
 defineProps({
-  currentRegion: {
-    type: String,
-    default: '전체',
+  currentRegion: { type: String, default: '전체' },
+  regions: {
+    type: Array,
+    default: () => ['전체', '내 위치', '서울/경기', '강원', '충청', '전라', '경상', '제주'],
   },
 })
 
 const emit = defineEmits(['update-region'])
 
-const regions = [
-  { value: '전체', icon: 'fa-solid fa-layer-group' },
-  { value: '내 위치', icon: 'fa-solid fa-location-crosshairs' },
-  { value: '서울/경기', icon: 'fa-solid fa-location-dot' },
-  { value: '강원', icon: 'fa-solid fa-location-dot' },
-  { value: '충청', icon: 'fa-solid fa-location-dot' },
-  { value: '전라', icon: 'fa-solid fa-location-dot' },
-  { value: '경상', icon: 'fa-solid fa-location-dot' },
-  { value: '제주', icon: 'fa-solid fa-location-dot' },
-]
+const iconFor = (region) => {
+  if (region === '전체') return 'fa-solid fa-layer-group'
+  if (region === '내 위치') return 'fa-solid fa-location-crosshairs'
+  return 'fa-solid fa-location-dot'
+}
 
 const selectRegion = (value) => {
   emit('update-region', value)
@@ -28,13 +24,13 @@ const selectRegion = (value) => {
   <div class="region-row">
     <button
       v-for="region in regions"
-      :key="region.value"
+      :key="region"
       class="region-chip"
-      :class="{ active: currentRegion === region.value }"
-      @click="selectRegion(region.value)"
+      :class="{ active: currentRegion === region }"
+      @click="selectRegion(region)"
     >
-      <i :class="region.icon"></i>
-      {{ region.value }}
+      <i :class="iconFor(region)"></i>
+      {{ region }}
     </button>
   </div>
 </template>
