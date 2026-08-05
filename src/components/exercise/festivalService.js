@@ -24,15 +24,6 @@ const toStatus = (startDate, endDate) => {
 }
 
 export async function fetchFestivalsByArea(areaCode) {
-  const today = new Date()
-  const windowStart = new Date(today)
-  windowStart.setDate(windowStart.getDate() - 60) // 60일 전부터 여유있게 조회
-
-  const toYYYYMMDD = (d) =>
-    d.getFullYear() +
-    String(d.getMonth() + 1).padStart(2, '0') +
-    String(d.getDate()).padStart(2, '0')
-
   const params = new URLSearchParams({
     serviceKey: import.meta.env.VITE_TOUR_KEY,
     MobileOS: 'ETC',
@@ -42,7 +33,7 @@ export async function fetchFestivalsByArea(areaCode) {
     numOfRows: '100',
     pageNo: '1',
     areaCode,
-    eventStartDate: toYYYYMMDD(windowStart),
+    eventStartDate: '20200101',
   })
 
   const res = await fetch(`${TOUR_BASE}?${params.toString()}`)

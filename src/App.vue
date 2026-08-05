@@ -1,8 +1,30 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import FeedbackWidget from '@/components/exercise/FeedbackWidget.vue'
+import { useAuthStore } from '@/stores/authStore'
+import { ElMessage } from 'element-plus'
+
+const authStore = useAuthStore()
+
+const handleLogout = () => {
+  const userName = authStore.userName
+  authStore.logout()
+  ElMessage.info(`${userName}님, 다음에 또 만나요! 👋`)
+}
 </script>
 
 <template>
+  <div class="auth-corner">
+    <template v-if="authStore.isLoggedIn">
+      <span class="auth-greeting">👋 {{ authStore.userName }}님</span>
+      <button class="auth-btn ghost" @click="handleLogout">로그아웃</button>
+    </template>
+    <template v-else>
+      <RouterLink to="/login" class="auth-btn ghost">로그인</RouterLink>
+      <RouterLink to="/signup" class="auth-btn filled">회원가입</RouterLink>
+    </template>
+  </div>
+
   <div class="app-shell">
     <nav class="navbar">
       <RouterLink to="/" class="nav-brand">
@@ -20,9 +42,51 @@ import { RouterLink, RouterView } from 'vue-router'
       <RouterView />
     </main>
   </div>
+  <FeedbackWidget />
 </template>
 
 <style scoped>
+.auth-corner {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 40;
+  display: flex;
+  gap: 8px;
+}
+.auth-btn {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.auth-btn.ghost {
+  background-color: rgba(255, 255, 255, 0.85);
+  color: #45415f;
+  border: 2px solid #f1ecff;
+}
+.auth-btn.ghost:hover {
+  border-color: #ff7faa;
+  color: #ff7faa;
+}
+.auth-btn.filled {
+  background-color: #ff7faa;
+  color: #ffffff;
+}
+.auth-btn.filled:hover {
+  background-color: #ff5c8a;
+}
+.auth-greeting {
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #45415f;
+}
+
 .app-shell {
   position: relative;
   z-index: 0;
@@ -99,6 +163,14 @@ import { RouterLink, RouterView } from 'vue-router'
 @media (max-width: 480px) {
   .navbar {
     border-radius: 20px;
+  }
+  .auth-corner {
+    top: 12px;
+    right: 12px;
+  }
+  .auth-btn {
+    padding: 6px 12px;
+    font-size: 11px;
   }
 }
 </style>
